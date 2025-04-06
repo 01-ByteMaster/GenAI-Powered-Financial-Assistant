@@ -13,4 +13,15 @@ Features: <br>
 
 Built With: 🔧 Python | Pandas | TensorFlow | Google Vertex AI | Gemini API.<br>
 Manage your finances smarter, not harder—with the GenAI edge.
+
+📋 Prerequisites :
+Before running the application, make sure the following are installed -- <strong>Python 3.6 or higher<strong><br>
+
+🔷  Required Python dependencies:<br>
+pip install streamlit plotly pandas numpy pillow pytesseract langchain_community<br>
+
+🚀 Running the Streamlit App<br><br>
+To launch the Streamlit application, run the following command in your terminal:<br>
+streamlit run FinHelp_streamlit.py
+
 </p>
