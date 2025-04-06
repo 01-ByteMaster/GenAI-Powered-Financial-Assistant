@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .sidebar-active {
+            background: linear-gradient(90deg, #F0F4FF 0%, rgba(240, 244, 255, 0) 100%);
+            border-right: 3px solid #3B82F6;
+        }
+        
+        .card-shadow {
+            box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.08);
+        }
+        
+        .indicator-positive {
+            color: #10B981;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        .indicator-negative {
+            color: #EF4444;
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .dropdown-shadow {
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex flex-col w-64 px-4 py-8 bg-white border-r">
+            <div class="flex items-center justify-center mb-12">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">FinancePro</h1>
+            </div>
+            
+            <nav class="flex-1">
+                <div class="space-y-2">
+                    <a href="#" class="sidebar-active flex items-center px-4 py-3 rounded-lg font-medium">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 text-blue-500"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="credit-card" class="w-5 h-5 mr-3"></i>
+                        Payments
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                        Customers
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="package" class="w-5 h-5 mr-3"></i>
+                        Services
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="file-text" class="w-5 h-5 mr-3"></i>
+                        Report
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="settings" class="w-5 h-5 mr-3"></i>
+                        Settings
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="mt-auto pt-8">
+                <div class="relative">
+                    <div class="p-4 bg-blue-50 rounded-xl">
+                        <h3 class="font-medium text-sm text-blue-800">Need help?</h3>
+                        <p class="text-xs text-blue-600 mt-1">Contact our support team</p>
+                        <button class="mt-3 px-4 py-2 bg-white text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-100 transition flex items-center">
+                            <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i>
+                            Contact Support
+                        </button>
+                    </div>
+                    <div class="absolute -left-4 top-1/2 transform -translate-y-1/2 w-2 h-8 bg-blue-500 rounded-r-full"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile sidebar toggle -->
+        <button class="md:hidden fixed bottom-6 right-6 z-30 p-3 bg-blue-600 text-white rounded-full shadow-lg" id="mobile-menu-button">
+            <i data-lucide="menu" id="menu-icon"></i>
+        </button>
+        
+        <!-- Mobile sidebar overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden" id="mobile-menu-overlay"></div>
+        
+        <!-- Mobile sidebar -->
+        <div class="fixed inset-y-0 left-0 w-64 bg-white z-30 transform -translate-x-full transition-transform duration-300" id="mobile-sidebar">
+            <div class="p-4 flex justify-between items-center border-b">
+                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">FinancePro</h1>
+                <button id="close-mobile-menu">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <nav class="p-4">
+                <div class="space-y-2">
+                    <a href="#" class="sidebar-active flex items-center px-4 py-3 rounded-lg font-medium">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 text-blue-500"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="credit-card" class="w-5 h-5 mr-3"></i>
+                        Payments
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                        Customers
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="package" class="w-5 h-5 mr-3"></i>
+                        Services
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="file-text" class="w-5 h-5 mr-3"></i>
+                        Report
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-500 hover:text-blue-500 rounded-lg font-medium transition">
+                        <i data-lucide="settings" class="w-5 h-5 mr-3"></i>
+                        Settings
+                    </a>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="relative">
+                        <div class="p-4 bg-blue-50 rounded-xl">
+                            <h3 class="font-medium text-sm text-blue-800">Need help?</h3>
+                            <p class="text-xs text-blue-600 mt-1">Contact our support team</p>
+                            <button class="mt-3 px-4 py-2 bg-white text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-100 transition flex items-center">
+                                <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i>
+                                Contact Support
+                            </button>
+                        </div>
+                        <div class="absolute -left-4 top-1/2 transform -translate-y-1/2 w-2 h-8 bg-blue-500 rounded-r-full"></div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <div class="p-4 md:p-8">
+                <!-- Header -->
+                <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">Account Overview</h2>
+                        <p class="text-gray-500 text-sm mt-1">Track your finance and investment status</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4 mt-4 md:mt-0 w-full md:w-auto">
+                        <!-- Currency Dropdown -->
+                        <div class="relative">
+                            <button class="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg border hover:bg-gray-50 transition" id="currency-dropdown-button">
+                                <span>USD</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </button>
+                            <div class="hidden absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-md dropdown-shadow z-10" id="currency-dropdown">
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">USD</a>
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">EUR</a>
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">GBP</a>
+                            </div>
+                        </div>
+                        
+                        <!-- Date Dropdown -->
+                        <div class="relative">
+                            <button class="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg border hover:bg-gray-50 transition" id="date-dropdown-button">
+                                <span>Last 7 days</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </button>
+                            <div class="hidden absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-md dropdown-shadow z-10" id="date-dropdown">
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Last 7 days</a>
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Last 30 days</a>
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">This quarter</a>
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">This year</a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Payment Overview Card -->
+                    <div class="bg-white rounded-xl p-6 card-shadow animate-fade-in">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="font-medium text-gray-700">Payment Overview</h3>
+                            <a href="#" class="text-blue-500 text-sm font-medium flex items-center">
+                                View Detail
+                                <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <p class="text-sm text-gray-500">Last 7 days</p>
+                                <p class="text-lg font-bold mt-1">$1,250.00</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium indicator-positive mt-1">
+                                    <i data-lucide="arrow-up" class="w-3 h-3 mr-1"></i>
+                                    25%
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Previous Period</p>
+                                <p class="text-lg font-bold mt-1">$1,050.00</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium indicator-negative mt-1">
+                                    <i data-lucide="arrow-down" class="w-3 h-3 mr-1"></i>
+                                    12%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="h-40">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Gross Volume Card -->
+                    <div class="bg-white rounded-xl p-6 card-shadow animate-fade-in delay-100">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="font-medium text-gray-700">Gross Volume</h3>
+                            <a href="#" class="text-blue-500 text-sm font-medium flex items-center">
+                                View Detail
+                                <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <p class="text-sm text-gray-500">Last 7 days</p>
+                                <p class="text-lg font-bold mt-1">$70.00</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium indicator-negative mt-1">
+                                    <i data-lucide="arrow-down" class="w-3 h-3 mr-1"></i>
+                                    25%
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Previous Period</p>
+                                <p class="text-lg font-bold mt-1">$250.00</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium indicator-positive mt-1">
+                                    <i data-lucide="arrow-up" class="w-3 h-3 mr-1"></i>
+                                    8%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="h-40">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recommended Investments -->
+                <div class="animate-fade-in delay-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-gray-800">Recommended Investments</h3>
+                        <a href="#" class="text-blue-500 text-sm font-medium flex items-center">
+                            View all
+                            <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <!-- Apple Card -->
+                        <div class="bg-white rounded-xl p-6 card-shadow hover:-translate-y-1 transition-transform duration-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="font-bold text-gray-800">Apple Inc.</h3>
+                                    <p class="text-gray-500 text-sm">AAPL - NASDAQ</p>
+                                </div>
+                                <div class="p-2 bg-blue-50 rounded-lg">
+                                    <i data-lucide="apple" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Current Price</p>
+                                    <p class="font-bold">$178.49</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Daily Change</p>
+                                    <p class="font-bold">0.45 (0.25%)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="h-24 mb-4">
+                                <canvas id="appleChart"></canvas>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium indicator-positive">
+                                    <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i>
+                                    17.8% growth
+                                </span>
+                                <button class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Microsoft Card -->
+                        <div class="bg-white rounded-xl p-6 card-shadow hover:-translate-y-1 transition-transform duration-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="font-bold text-gray-800">Microsoft</h3>
+                                    <p class="text-gray-500 text-sm">MSFT - NASDAQ</p>
+                                </div>
+                                <div class="p-2 bg-blue-50 rounded-lg">
+                                    <i data-lucide="monitor-play" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Current Price</p>
+                                    <p class="font-bold">$210.22</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Daily Change</p>
+                                    <p class="font-bold">1.32 (0.63%)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="h-24 mb-4">
+                                <canvas id="microsoftChart"></canvas>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium indicator-positive">
+                                    <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i>
+                                    21.0% growth
+                                </span>
+                                <button class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tesla Card -->
+                        <div class="bg-white rounded-xl p-6 card-shadow hover:-translate-y-1 transition-transform duration-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="font-bold text-gray-800">Tesla Inc.</h3>
+                                    <p class="text-gray-500 text-sm">TSLA - NASDAQ</p>
+                                </div>
+                                <div class="p-2 bg-blue-50 rounded-lg">
+                                    <i data-lucide="battery-charging" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Current Price</p>
+                                    <p class="font-bold">$267.54</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Daily Change</p>
+                                    <p class="font-bold">-3.12 (1.15%)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="h-24 mb-4">
+                                <canvas id="teslaChart"></canvas>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium indicator-negative">
+                                    <i data-lucide="trending-down" class="w-3 h-3 mr-1"></i>
+                                    5.3% decline
+                                </span>
+                                <button class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').classList.remove('-translate-x-full');
+            document.getElementById('mobile-menu-overlay').classList.remove('hidden');
+            document.getElementById('menu-icon').setAttribute('data-lucide', 'x');
+            lucide.createIcons();
+        });
+        
+        // Close mobile menu
+        document.getElementById('close-mobile-menu').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobile-menu-overlay').classList.add('hidden');
+            document.getElementById('menu-icon').setAttribute('data-lucide', 'menu');
+            lucide.createIcons();
+        });
+        
+        // Close mobile menu when clicking overlay
+        document.getElementById('mobile-menu-overlay').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobile-menu-overlay').classList.add('hidden');
+            document.getElementById('menu-icon').setAttribute('data-lucide', 'menu');
+            lucide.createIcons();
+        });
+        
+        // Currency dropdown
+        document.getElementById('currency-dropdown-button').addEventListener('click', function() {
+            document.getElementById('currency-dropdown').classList.toggle('hidden');
+        });
+        
+        // Date dropdown
+        document.getElementById('date-dropdown-button').addEventListener('click', function() {
+            document.getElementById('date-dropdown').classList.toggle('hidden');
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('#currency-dropdown-button')) {
+                document.getElementById('currency-dropdown').classList.add('hidden');
+            }
+            if (!event.target.closest('#date-dropdown-button')) {
+                document.getElementById('date-dropdown').classList.add('hidden');
+            }
+        });
+        
+        // Setup payment chart
+        const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+        const paymentChart = new Chart(paymentCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Current Week',
+                        data: [850, 980, 1050, 1150, 1200, 1250, 1250],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3B82F6',
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'Previous Week',
+                        data: [750, 800, 900, 950, 1000, 1050, 1050],
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#EF4444',
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Setup volume chart
+        const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+        const volumeChart = new Chart(volumeCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Current Week',
+                        data: [20, 30, 40, 50, 60, 70, 70],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3B82F6',
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'Previous Week',
+                        data: [50, 70, 90, 150, 200, 250, 250],
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#EF4444',
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Setup stock charts
+        const stockColors = {
+            apple: {
+                bg: 'rgba(16, 185, 129, 0.1)',
+                border: '#10B981'
+            },
+            microsoft: {
+                bg: 'rgba(59, 130, 246, 0.1)',
+                border: '#3B82F6'
+            },
+            tesla: {
+                bg: 'rgba(239, 68, 68, 0.1)',
+                border: '#EF4444'
+            }
+        };
+        
+        const createStockChart = (id, color) => {
+            const ctx = document.getElementById(id).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['', '', '', '', '', '', ''],
+                    datasets: [{
+                        data: [3, 5, 4, 6, 7, 5, 8],
+                        borderColor: color.border,
+                        backgroundColor: color.bg,
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            display: false,
+                            beginAtZero: false
+                        },
+                        x: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        };
+        
+        // Initialize stock charts
+        const appleChart = createStockChart('appleChart', stockColors.apple);
+        const microsoftChart = createStockChart('microsoftChart', stockColors.microsoft);
+        const teslaChart = createStockChart('teslaChart', stockColors.tesla);
+    </script>
+</body>
+</html>
